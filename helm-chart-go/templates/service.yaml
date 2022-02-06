@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.mainTag }}
+spec:
+  type: {{ .Values.service.Type }}
+  selector:
+    app: {{ .Values.mainTag }}
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+      nodePort: 30008

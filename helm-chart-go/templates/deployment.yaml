@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ .Values.mainTag }}
+  name: {{ .Values.mainTag }}
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: {{ .Values.mainTag }}
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.mainTag }}
+    spec:
+      containers:
+      - image: go-api
+        name: {{ .Values.mainTag }}
+        imagePullPolicy: "Never"
+        ports:
+        - containerPort: 3000
+        env:
+        - name: MAIN_FILE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: {{ .Values.mainTag }}
+              key: main_file_name
+        - name: MAIN_FUNCTION_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: {{ .Values.mainTag }}
+              key: main_function_name
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 3
+          periodSeconds: 3
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          tcpSocket:
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 2
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /startup
+            port: 3000
+          failureThreshold: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        volumeMounts:
+        - name: {{ .Values.mainTag }}-secret
+          mountPath: "/etc/secrets"
+          readOnly: true
+      volumes:
+      - name: {{ .Values.mainTag }}-secret
+        secret:
+          secretName: {{ .Values.mainTag }}
+          items:
+          - key: name
+            path: {{ .Values.mainTag }}-name
+      initContainers:
+      - name: init-myservice
+        image: busybox:1.28
+        command: ['sh', '-c', "sleep 15"]
+      restartPolicy: "Always"
+

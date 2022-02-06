@@ -1,0 +1,4 @@
+mainTag: goapi
+
+service:
+  Type: NodePort

@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: goapi
+  name: goapi
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: goapi
+  strategy: 
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: goapi
+    spec:
+      containers:
+      - image: go-api
+        name: goapi
+        imagePullPolicy: "Never"
+        ports:
+        - containerPort: 3000
+        env:
+        - name: MAIN_FILE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: goapi
+              key: main_file_name
+        - name: MAIN_FUNCTION_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: goapi
+              key: main_function_name
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 3
+          periodSeconds: 3
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          tcpSocket:
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 2
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /startup
+            port: 3000
+          failureThreshold: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+        volumeMounts:
+        - name: goapi-secret
+          mountPath: "/etc/secrets"
+          readOnly: true
+      volumes:
+      - name: goapi-secret
+        secret:
+          secretName: goapi
+          items:
+          - key: name
+            path: goapi-name
+      initContainers:
+      - name: init-myservice
+        image: busybox:1.28
+        command: ['sh', '-c', "sleep 15"]
+      restartPolicy: "Always"
+

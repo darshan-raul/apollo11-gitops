@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: goapi
+spec:
+  type: NodePort
+  selector:
+    app: goapi
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+      nodePort: 30008

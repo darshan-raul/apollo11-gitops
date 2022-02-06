@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: goapi
+data:
+  main_file_name: "main"
+  main_function_name: "app"
