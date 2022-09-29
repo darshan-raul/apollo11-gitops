@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: nginx
+  name: nginx
+spec:
+  containers:
+  - image: nginx
+    name: nginx
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: nginx
+  name: nginx
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: nginx
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: nginx
+  namespace: default
+spec:
+  entryPoints: 
+    - web 
+  routes:                    
+  - kind: Rule
+    middlewares:
+    - name: remove-nginx-prefix
+      namespace: default
+    match: PathPrefix(`/nginx`)
+    services:                
+    - kind: Service
+      name: nginx
+      namespace: default
+      port: 80               
+---
+## This is needed because the default nginx application will give a 404 if it see's the /nginx path
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: remove-nginx-prefix
+  namespace: default
+spec:
+  stripPrefix:
+    prefixes:
+      - /nginx
+
