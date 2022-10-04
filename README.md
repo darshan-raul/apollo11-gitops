@@ -106,7 +106,7 @@ Go to your browser : http://<server_ip>:9000/dashboard/
 
 ```
 
-- Create a ingress route in Traefik
+- Create a test ingress route in Traefik
 
 ```
 kubectl apply -f manifests/traefik/ingressroutes/nginx.yaml
@@ -128,5 +128,81 @@ OR
 ## if running on a server, make sure that the server firewall allows connection from your machine
 
 Go to your browser : http://<server_ip>:8000/nginx
+
+## Once confirmed, you can delete these routes
+kubectl delete -f manifests/traefik/ingressroutes/nginx.yaml
+
+```
+
+- Install argo workflows
+
+```
+kubectl create namespace argo
+kubectl apply -n argo -f manifests/argo/workflows/install.yaml
+
+## check whether the required resources are created
+
+kubectl get all -n argo 
+
+## ideally you should see that two deployments argo-server and workflow controller are created and there is a argo-server is created
+
+
+```
+
+- Expose argo-workflows dashboard using traefik
+
+```
+kubectl apply -f manifests/traefik/argo-worflow.yaml
+
+## Now check if you can see the argo workflows dashboard
+## if running from localhost
+Go to your browser : http://localhost:8000
+
+OR
+## if running on a server, make sure that the server firewall allows connection from your machine
+
+Go to your browser : http://<server_ip>:8000
+
+
+```
+
+- Install the argo workflow tool to manage the workflows:
+
+```
+cd ~
+mkdir bin
+echo "PATH=$PATH:~/bin" >> .bashrc && source .bashrc # to add this path to $PATH
+
+# Download the binary
+curl -sLO https://github.com/argoproj/argo-workflows/releases/download/v3.4.1/argo-linux-amd64.gz
+
+# Unzip
+gunzip argo-linux-amd64.gz
+
+# Make binary executable
+chmod +x argo-linux-amd64
+
+# Move binary to path
+mv ./argo-linux-amd64 ~/bin/argo
+
+# Test installation
+argo version
+```
+
+- Run a test workflow:
+
+```
+
+argo submit -n argo --watch https://raw.githubusercontent.com/argoproj/argo-workflows/master/examples/hello-world.yaml
+
+
+## Now check if you can see the workflow created in workflow dashboard
+## if running from localhost
+Go to your browser : http://localhost:8000/workflows/argo
+
+OR
+## if running on a server, make sure that the server firewall allows connection from your machine
+
+Go to your browser : http://<server_ip>:8000/workflows/argo
 
 ```
