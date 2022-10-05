@@ -206,3 +206,52 @@ OR
 Go to your browser : http://<server_ip>:8000/workflows/argo
 
 ```
+
+- Install Argo events
+
+```
+kubectl create namespace argo-events
+
+kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-events/stable/manifests/install.yaml
+# Install with a validating admission controller
+kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-events/stable/manifests/install-validating-webhook.yaml
+
+## install the event bus
+kubectl apply -n argo-events -f https://raw.githubusercontent.com/argoproj/argo-events/stable/examples/eventbus/native.yaml
+
+```
+
+- Create a test Argo event webhook
+
+```
+kubectl apply -n argo-events -f https://raw.githubusercontent.com/argoproj/argo-events/stable/examples/event-sources/webhook.yaml
+## check that the clusterip service is created on port 12000
+kubectl get all -n argo-events
+```
+
+- Create webhook sensor
+
+```
+ # sensor rbac
+kubectl apply -n argo-events -f https://raw.githubusercontent.com/argoproj/argo-events/master/examples/rbac/sensor-rbac.yaml
+ # workflow rbac
+kubectl apply -n argo-events -f https://raw.githubusercontent.com/argoproj/argo-events/master/examples/rbac/workflow-rbac.yaml
+
+kubectl apply -n argo-events -f https://raw.githubusercontent.com/argoproj/argo-events/stable/examples/sensors/webhook.yaml
+
+```
+
+- Test the webhook
+
+```
+# expose the webhook endpoint
+kubectl -n argo-events port-forward $(kubectl -n argo-events get pod -l eventsource-name=webhook -o name) 12000:12000 &
+
+# send a curl req to trigger the webhook
+curl -d '{"message":"this is my first webhook"}' -H "Content-Type: application/json" -X POST http://localhost:12000/example
+
+# list the workflow
+argo list -n argo-events
+# check the logs of the triggered workflow
+argo logs -n argo-events @latest
+```
