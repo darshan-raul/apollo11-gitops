@@ -255,3 +255,25 @@ argo list -n argo-events
 # check the logs of the triggered workflow
 argo logs -n argo-events @latest
 ```
+
+- Creating github webhook(event source) to trigger pipeline
+
+```
+# Create a github access token with webhook creation permissions
+# Follow: https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line
+
+# Then create a base64 value for it
+echo -n <github-api-token-key> | base64
+
+# update this base64 value in ./manigests/secrets/github-secret.yaml
+# create the secret in the argo-events namespace
+
+kubectl apply -f manigests/secrets/github-secret.yaml
+
+# Next create the event source
+# update the owner and repository and server url details in manifests/argo/events/eventsources/github.yaml to match your requirements
+
+kubectl apply -n argo-events -f manifests/argo/events/eventsources/github.yaml
+
+# you should be able to see the webhook created at https://github.com/<user-name>/<repo-name>/settings/hooks
+```
