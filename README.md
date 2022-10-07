@@ -1,6 +1,6 @@
 # apolo11-go-api-k8s
 
-This will be the plan for this project:
+This will be the plan for this projec:
 
 ![workflow](./images/apollo11-gitops.png)
 
