@@ -258,6 +258,40 @@ argo logs -n argo-events @latest
 
 - Creating github webhook(event source) to trigger pipeline
 
+
+```
+## you will need a reverse proxy (nginx) to point to your service
+sudo apt install nginx -y 
+
+## confirm that nginx is running properly
+
+sudo systemctl status nginx
+sudo ss - tlp | grep nginx # to confirm if its listening on port 80
+
+## Create a new server route 
+
+sudo cat << EOF >> /etc/nginx/sites-available/default
+server {
+  listen 80;
+  server_name argo.iamcloudnative.com # replace this with whatever domain you have kept
+  location / {
+
+    proxy_pass http://localhost:30007
+    proxy_buffering off;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Port $server_port;
+
+  }
+}
+EOF
+
+## This will append the reverse proxy route for the nodeport expose we will create below
+sudo systemctl restart nginx
+```
+
+Now we will create the webhook 
+
 ```
 # Create a github access token with webhook creation permissions
 # Follow: https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line
@@ -270,10 +304,14 @@ echo -n <github-api-token-key> | base64
 
 kubectl apply -f manigests/secrets/github-secret.yaml
 
+## confirm that the secret has been created
+
+kubectl get secrets 0n argo-events 
+
 # Next create the event source
 # update the owner and repository and server url details in manifests/argo/events/eventsources/github.yaml to match your requirements
 
 kubectl apply -n argo-events -f manifests/argo/events/eventsources/github.yaml
 
-# you should be able to see the webhook created at https://github.com/<user-name>/<repo-name>/settings/hooks
+ you should be able to see the webhook created at https://github.com/<user-name>/<repo-name>/settings/hooks
 ```

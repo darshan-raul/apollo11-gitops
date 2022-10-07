@@ -2,37 +2,37 @@
 apiVersion: argoproj.io/v1alpha1
 kind: EventSource
 metadata:
-  name: github
+  name: github-webhook
 spec:
   service:
     ports:
       - name: github-webhook-port
-        port: 14000
-        targetPort: 14000
+        port: 16000
+        targetPort: 16000
   github:
-    example:
+    github-repo-webhook:
       repositories:
         - owner: darshan-raul
           names:
-            - medium_blogs
+            - go-primer
       # Github will send events to following port and endpoint
       webhook:
         # endpoint to listen to events on
-        endpoint: /push
+        endpoint: /webhook
         # port to run internal HTTP server on
-        port: "14000"
+        port: "16000"
         # HTTP request method to allow. In this case, only POST requests are accepted
         method: POST
         # url the event-source will use to register at Github.
         # This url must be reachable from outside the cluster.
         # The name for the service is in `<event-source-name>-eventsource-svc` format.
         # You will need to create an Ingress or Openshift Route for the event-source service so that it can be reached from GitHub.
-      url: http://<cluster url>
+      url: http://argo.iamcloudnative.com
       # type of events to listen to.
       # following listens to everything, hence *
       # You can find more info on https://developer.github.com/v3/activity/events/types/
       events:
-        - "*"
+        - "push"
 
       # apiToken refers to K8s secret that stores the github api token
       # if apiToken is provided controller will create webhook on GitHub repo
@@ -58,4 +58,4 @@ spec:
       active: true
       # The media type used to serialize the payloads
       contentType: json
-      
+      deleteHookOnFinish: true #whether to delete the GitHub hook for the repository once the event source is stopped. 
