@@ -21,7 +21,7 @@ spec:
         app: fastapi
     spec:
       containers:
-      - image: darraul/apollo11-fastapi:latest
+      - image: darraul/apollo11-fastapi:2.0
         name: fastapi
         imagePullPolicy: "IfNotPresent"
         ports:

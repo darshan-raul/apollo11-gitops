@@ -1,6 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+  namespace: apollo11
   labels:
     app: goapi
   name: goapi
@@ -20,22 +21,22 @@ spec:
         app: goapi
     spec:
       containers:
-      - image: go-api
+      - image: darraul/apollo11-goapi:2.0
         name: goapi
-        imagePullPolicy: "Never"
+        imagePullPolicy: "IfNotPresent"
         ports:
         - containerPort: 3000
-        env:
-        - name: MAIN_FILE_NAME
-          valueFrom:
-            configMapKeyRef:
-              name: goapi
-              key: main_file_name
-        - name: MAIN_FUNCTION_NAME
-          valueFrom:
-            configMapKeyRef:
-              name: goapi
-              key: main_function_name
+        # env:
+        # - name: MAIN_FILE_NAME
+        #   valueFrom:
+        #     configMapKeyRef:
+        #       name: goapi
+        #       key: main_file_name
+        # - name: MAIN_FUNCTION_NAME
+        #   valueFrom:
+        #     configMapKeyRef:
+        #       name: goapi
+        #       key: main_function_name
         livenessProbe:
           httpGet:
             path: /health
@@ -62,17 +63,17 @@ spec:
           timeoutSeconds: 5
           successThreshold: 1
           failureThreshold: 3
-        volumeMounts:
-        - name: goapi-secret
-          mountPath: "/etc/secrets"
-          readOnly: true
-      volumes:
-      - name: goapi-secret
-        secret:
-          secretName: goapi
-          items:
-          - key: name
-            path: goapi-name
+      #   volumeMounts:
+      #   - name: goapi-secret
+      #     mountPath: "/etc/secrets"
+      #     readOnly: true
+      # volumes:
+      # - name: goapi-secret
+      #   secret:
+      #     secretName: goapi
+      #     items:
+      #     - key: name
+      #       path: goapi-name
       initContainers:
       - name: init-myservice
         image: busybox:1.28
